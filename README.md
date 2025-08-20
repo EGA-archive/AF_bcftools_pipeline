@@ -249,3 +249,7 @@ GRAF provides functions to infer sex (graf sex, PLINK input), detect related sam
 
 ### Hail
 Hail offers similar capabilities with `impute_sex` for sex inference and `king` and `pc_relate` for relatedness filtering.
+
+## References
+
+Lu W, Gauthier LD, Poterba T, Giacopuzzi E, Goodrich JK, Stevens CR, King D, Daly MJ, Neale BM, Karczewski KJ. CHARR efficiently estimates contamination from DNA sequencing data. bioRxiv [Preprint]. 2023 Jun 28:2023.06.28.545801. doi: 10.1101/2023.06.28.545801. Update in: Am J Hum Genet. 2023 Dec 7;110(12):2068-2076. doi: 10.1016/j.ajhg.2023.10.011. PMID: 37425834; PMCID: PMC10327099.
