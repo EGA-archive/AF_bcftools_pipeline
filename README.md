@@ -56,7 +56,7 @@ The pipeline performs the following steps:
 
 ## Input Requirements
 
-- **VCF files** (`.vcf.gz` or `.vcf.bgz`) in the input directory.  
+- **VCF files** (`.vcf.gz`) in the input directory.  
 
     ⚠️ **Important: For allele frequency (AF) recalculations to be valid, the input VCFs should contain only unrelated individuals.**
 
@@ -87,9 +87,10 @@ Edit *nextflow.config* to adjust parameters.
 params {
     // Paths
     input        = "/path/to/folder/with/vcfs/"
+    output_stats = "/home/mireia/GitHub/bcftools-pipeline/bcftools-pipeline"
     sceVCF_path  = "/path/to/sceVCF_binaries"
     metadata_csv = "/path/to/metadata.csv"
-    seq_type     = "WES" // or "WGS"
+    seq_type     = "WGS" // or "WES"
     threads      = 4
 
      // Pipeline behavior
@@ -147,6 +148,8 @@ params {
 
 - metadata_csv is required for the ADD_AF step.
 
+- The fields INFO/QD, INFO/DP, INFO/MQ, INFO/FS, FORMAT/GQ, FORMAT/GT and FORMAT/AD must be correctly described on the header for the filtering to work correctly.
+
 ## Running the Pipeline
 
 ### Basic run: 
@@ -168,6 +171,33 @@ nextflow run main.nf \
 
 **NOTE:** This will overwrite the configuration parameters set in nextflow.config
 
+### HTML report and timeline
+
+```
+nextflow run main.nf -with-report report.html -with-timeline timeline.html
+```
+
+This command will automatically generate two reports, report.html and timeline.html. 
+
+**report.html** will contain: 
+
+- Process run counts and statuses (cached/failed/succeeded)
+
+- CPU, memory, time usage per process
+
+- I/O stats and container info (if used)
+
+- Cache hit ratio and overall runtime
+
+**timeline.html** will contain:
+
+- Each task’s start/finish times
+
+- Parallelism and queueing
+
+- Retries/restarts and durations
+
+
 ## Outputs 
 
 After successful execution, you'll find inside the */work* folder:
@@ -186,12 +216,36 @@ After successful execution, you'll find inside the */work* folder:
 
 **Final output**
 
-* with_AF.vcf.gz (TODO: make the name the same as the original VCF with -AF_recalc) → fully filtered VCF with allele frequency annotations and witout sample level information. 
+* input_vcf_baseName.vcf.gz (TODO: make the name the same as the original VCF with -AF_recalc) → fully filtered VCF with allele frequency annotations and witout sample level information. 
 
-- with_AF.vcf.gz.tbi → index for the final VCF.
+- input_vcf_baseName.vcf.gz.tbi → index for the final VCF.
+
+- In `$output_stats` there will be a log with information about each step of the pipeline.
 
 
 ---
-💡 How to find the files ? 
+💡 **How to find the files ?**
 
-Examples of nextflow output: 
+Example a of nextflow output: 
+
+```
+[34/34b365] process > INDEX_VCF (test.vcf.bgz)                                           [100%] 1 of 1 ✔
+[bc/56f27a] process > SPLIT_MULTIALLELIC (test.vcf.bgz)                                  [100%] 1 of 1 ✔
+[46/bf10e7] process > GENOTYPE_QC (test_split-multiallelic.vcf.bgz)                      [100%] 1 of 1 ✔
+[88/8b101c] process > VARIANT_QC (test_split-multiallelic-masked.vcf.gz)                 [100%] 1 of 1 ✔
+[33/a6c930] process > SAMPLE_QC (test_split-multiallelic-masked-filtered.vcf.gz)         [100%] 1 of 1 ✔
+[c7/065171] process > ADD_AF (test_split-multiallelic-masked-filtered.sample_qc.vcf.bgz) [100%] 1 of 1 ✔
+```
+Go to /work/34/34b365[-->] and you'll find the index file created (if already provided as input) as temporary files. 
+
+Go to /work/c7/065171[-->] for the final files of the pipeline. 
+
+## How to generate metadata_csv
+
+The `metadata.csv` file can be generated using tools such as [GRAF tools](https://github.com/ncbi/graf) and [Hail](https://hail.is/docs/0.2/index.html). 
+
+### Graf tools
+GRAF provides functions to infer sex (graf sex, PLINK input), detect related samples (graf rel, PLINK input), and assign ancestry ([graf anc](https://github.com/jimmy-penn/grafanc/tree/master), VCF input). Note that, for ancestry inference, only super-population calls (e.g. European, Asian, African) are recommended, since finer-level predictions are not sufficiently accurate. 
+
+### Hail
+Hail offers similar capabilities with `impute_sex` for sex inference and `king` and `pc_relate` for relatedness filtering.
