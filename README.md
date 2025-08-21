@@ -1,6 +1,6 @@
 # BCFtools-Pipeline (Nextflow DSL2)
 
-This repository contains a **Nextflow DSL2 pipeline** for variant calling quality control (QC) and downstream allele frequency annotation stratified by sex and ancestry.  
+This repository contains a **Nextflow DSL2 pipeline** for **SNP** variant calling quality control (QC) and downstream allele frequency annotation stratified by sex and ancestry.  
 
 It integrates several QC steps (genotype-, variant-, and sample-level filtering) and recalculates allele frequencies (AFs) based on sample metadata using BCFTools. 
 
@@ -12,7 +12,7 @@ The pipeline performs the following steps:
 
 1. **INDEX_VCF**  
    - Ensures each input VCF has an index (`.tbi`).  
-   - If missing, it creates one with `bcftools index`.
+   - If missing, it creates one with `tabix`.
 
 2. **SPLIT_MULTIALLELIC**  
    - Splits multiallelic variants into biallelic records using `bcftools norm`.
@@ -72,7 +72,7 @@ The pipeline performs the following steps:
     ```
     **Some important considerations about the submitted metadata:** 
     
-    - Ensure this is the order of your metadata columns.
+    - Ensure the order of your metadata columns is the one shown above.
     - Sex should be coded as `1` = MALE, `2` = FEMALE.  
     - Ancestry codes are free-text (e.g., EUR, AFR, EAS). But, take into consideration that the naming on the CSV will be used to annotate the ancestry AF fields in the VCF. 
 
@@ -146,9 +146,9 @@ params {
 
 - `seq_type` selects which Sample QC thresholds are applied (wes vs wgs).
 
-- metadata_csv is required for the ADD_AF step.
+- metadata_csv is required.
 
-- The fields INFO/QD, INFO/DP, INFO/MQ, INFO/FS, FORMAT/GQ, FORMAT/GT and FORMAT/AD must be correctly described on the header for the filtering to work correctly.
+- The fields INFO/QD, INFO/DP, INFO/MQ, INFO/FS, INFO/ReadPosRankSum,  FORMAT/GQ, FORMAT/GT and FORMAT/AD must be correctly described in the header for the filtering to work correctly.
 
 ## Running the Pipeline
 
@@ -200,7 +200,7 @@ This command will automatically generate two reports, report.html and timeline.h
 
 ## Outputs 
 
-After successful execution, you'll find inside the */work* folder:
+After a successful execution, you'll find inside the */work* folder:
 
 **Intermediate outputs**
 
@@ -216,15 +216,15 @@ After successful execution, you'll find inside the */work* folder:
 
 **Final output**
 
-* input_vcf_baseName.vcf.gz (TODO: make the name the same as the original VCF with -AF_recalc) → fully filtered VCF with allele frequency annotations and witout sample level information. 
+* *input_vcf_baseName*.vcf.gz (TODO: make the name the same as the original VCF with -AF_recalc) → fully filtered VCF with allele frequency annotations and witout sample level information. 
 
-- input_vcf_baseName.vcf.gz.tbi → index for the final VCF.
+- *input_vcf_baseName*.vcf.gz.tbi → index for the final VCF.
 
-- In `$output_stats` there will be a log with information about each step of the pipeline.
+- In `$output_stats` there will be a log file with information about each step of the pipeline run per file. 
 
 
 ---
-💡 **How to find the files ?**
+💡 **How to find the files inside the /work folder?**
 
 Example a of nextflow output: 
 
@@ -236,16 +236,16 @@ Example a of nextflow output:
 [33/a6c930] process > SAMPLE_QC (test_split-multiallelic-masked-filtered.vcf.gz)         [100%] 1 of 1 ✔
 [c7/065171] process > ADD_AF (test_split-multiallelic-masked-filtered.sample_qc.vcf.bgz) [100%] 1 of 1 ✔
 ```
-Go to /work/34/34b365[-->] and you'll find the index file created (if already provided as input) as temporary files. 
+Go to /work/bc/56f27a[-->] and you'll find the VCF with the multiallelic variants splitted.
 
 Go to /work/c7/065171[-->] for the final files of the pipeline. 
 
 ## How to generate metadata_csv
 
-The `metadata.csv` file can be generated using tools such as [GRAF tools](https://github.com/ncbi/graf) and [Hail](https://hail.is/docs/0.2/index.html). 
+If you don't have the necessary metadata to create `metadata.csv` you can infer it using tools such as [GRAF tools](https://github.com/ncbi/graf) and [Hail](https://hail.is/docs/0.2/index.html). 
 
 ### Graf tools
-GRAF provides functions to infer sex (graf sex, PLINK input), detect related samples (graf rel, PLINK input), and assign ancestry ([graf anc](https://github.com/jimmy-penn/grafanc/tree/master), VCF input). Note that, for ancestry inference, only super-population calls (e.g. European, Asian, African) are recommended, since finer-level predictions are not sufficiently accurate. 
+GRAF provides functions to infer sex (graf sex, PLINK input), detect related samples (graf rel, PLINK input), and assign ancestry ([graf anc](https://github.com/jimmy-penn/grafanc/tree/master), VCF input). Note that, for ancestry inference, only super-population calls (e.g. European, Asian, African...) are recommended, since finer-level predictions are not sufficiently accurate. 
 
 ### Hail
 Hail offers similar capabilities with `impute_sex` for sex inference and `king` and `pc_relate` for relatedness filtering.
