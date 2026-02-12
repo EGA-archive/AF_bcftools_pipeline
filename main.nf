@@ -161,7 +161,7 @@ process GENOTYPE_QC {
     declare -A gt_conditions=(
       [GQ]='FMT/GQ < ${params.qc.genotype.gq_threshold}'
       [DP]='FMT/DP < ${params.qc.genotype.dp_threshold}'
-      [AD]='(FMT/AD[*:0]+FMT/AD[*:1])>0 && (FMT/AD[*:1]/(FMT/AD[*:0]+FMT/AD[*:1])) < ${params.qc.genotype.ab_ratio_threshold}'
+      [AD]='GT="het" && (FMT/AD[*:0]+FMT/AD[*:1])>0 && (FMT/AD[*:1]/(FMT/AD[*:0]+FMT/AD[*:1])) < ${params.qc.genotype.ab_ratio_threshold}'
     )
 
     {
