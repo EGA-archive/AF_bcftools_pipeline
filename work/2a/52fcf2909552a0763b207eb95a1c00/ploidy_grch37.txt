@@ -1,0 +1,1 @@
+/home/mireia/GitHub/bcftools-pipeline/AF_bcftools_pipeline/assets/ploidy_grch37.txt

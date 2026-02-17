@@ -1,0 +1,20 @@
+#!/bin/bash -ue
+set -euo pipefail
+touch "/home/mireia//GitHub/bcftools-pipeline/AF_bcftools_pipeline/output/subset-1000_AFs-females.log"
+echo "✗ No index found for subset-1000_AFs-females.gonl-EGAD00001000743-concat.vcf.gz — creating..." >> "/home/mireia//GitHub/bcftools-pipeline/AF_bcftools_pipeline/output/subset-1000_AFs-females.log"
+tabix -p vcf "subset-1000_AFs-females.gonl-EGAD00001000743-concat.vcf.gz"
+nvariant="$(bcftools index -n subset-1000_AFs-females.gonl-EGAD00001000743-concat.vcf.gz)"
+nsample="$(bcftools query -l subset-1000_AFs-females.gonl-EGAD00001000743-concat.vcf.gz | wc -l)"
+ngenotypes="$(( nsample * nvariant ))"
+{
+  echo " === EGA BCFTools Pipeline ==="
+  echo "Developed by: Mireia Marin Ginestar (mireia.marin@crg.eu)"
+  echo "version 3.0.0"
+  echo ""
+  echo "✓ Index created for subset-1000_AFs-females.gonl-EGAD00001000743-concat.vcf.gz"
+  echo ""
+  echo " === ORIGINAL STATISTICS === "
+  echo "Variant Number: $nvariant"
+  echo "Sample Number: $nsample"
+  echo "Genotype Number: $ngenotypes"
+} > "/home/mireia//GitHub/bcftools-pipeline/AF_bcftools_pipeline/output/subset-1000_AFs-females.log"

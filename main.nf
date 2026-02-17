@@ -150,7 +150,7 @@ process GENOTYPE_QC {
 
     VCF_IN="${vcf}"
     VCF_OUT="${vcf.simpleName}-GTmasked.vcf.gz"
-    OP="||"
+    OP="|"
 
     # Define candidate per‑genotype rules (only applied if the FORMAT tag exists)
     #  - GQ: genotype quality below threshold
@@ -161,7 +161,7 @@ process GENOTYPE_QC {
     declare -A gt_conditions=(
       [GQ]='FMT/GQ < ${params.qc.genotype.gq_threshold}'
       [DP]='FMT/DP < ${params.qc.genotype.dp_threshold}'
-      [AD]='GT="het" && (FMT/AD[*:0]+FMT/AD[*:1])>0 && (FMT/AD[*:1]/(FMT/AD[*:0]+FMT/AD[*:1])) < ${params.qc.genotype.ab_ratio_threshold}'
+      [AD]='GT="het" & (FMT/AD[*:0]+FMT/AD[*:1])>0 & ((FMT/AD[*:1]/(FMT/AD[*:0]+FMT/AD[*:1])) < ${params.qc.genotype.ab_ratio_min_threshold} | (FMT/AD[*:1]/(FMT/AD[*:0]+FMT/AD[*:1])) > ${params.qc.genotype.ab_ratio_max_threshold})'
     )
 
     {
@@ -195,18 +195,20 @@ process GENOTYPE_QC {
     gt_expr="\${gt_expr_parts[0]}"
     for cond in "\${gt_expr_parts[@]:1}"; do gt_expr+=" \$OP \$cond"; done
 
-    {
-      echo "Final per-genotype mask expression:"
-      echo "\$gt_expr"
-      echo "Running bcftools +setGT (mask to ./.)"
-    } >> "${log_file}"
-
     # Mask failing genotypes to ./.
     # -t q : expression applies per-sample/per-genotype (FORMAT context)
     # -n . : set GT to missing when -e expr evaluates to true
-    # -e   : mask expression (constructed above)
+    # -i   : apply the action to genotypes where the expression is TRUE -> mask variants that fail the QC 
 
-    bcftools +setGT "\$VCF_IN" -Oz -o "\$VCF_OUT" -- -t q -n . -e "\$gt_expr"
+    {
+      echo "Final per-genotype mask expression:"
+      echo "\$gt_expr"
+      echo ""
+      echo "Running bcftools +setGT (mask to ./.): 
+      bcftools +setGT "\$VCF_IN" -Oz -o "\$VCF_OUT" -- -t q -n . -i "\$gt_expr""
+    } >> "${log_file}"
+    
+    bcftools +setGT "\$VCF_IN" -Oz -o "\$VCF_OUT" -- -t q -n . -i "\$gt_expr" 2>> "${log_file}"
     tabix -p vcf "\$VCF_OUT"
 
     {
@@ -249,7 +251,7 @@ process VARIANT_QC {
     VCF_IN="${vcf}"
     VCF_OUT="${vcf.simpleName}-variantQC.vcf.gz"
     before_count=\$(bcftools index -n "\$VCF_IN") # original number of variants
-    OP="||" # Combine conditions with OR: EXCLUDE variant if any condition is true
+    OP="|" # Combine conditions with OR: EXCLUDE variant if any condition is true
 
     # Candidate site-level rules (only enabled if the INFO tag is present)
     # QD  : Qual/Depth below threshold
