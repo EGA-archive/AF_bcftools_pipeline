@@ -140,9 +140,9 @@ params {
         genotype {
             gq_threshold = 20
             dp_threshold = 10
-            ab_ratio_threshold = 0.2
+            ab_ratio_min_threshold = 0.2 // if no lower theshold is needed, set ab_ratio_max_threshold = 1
+            ab_ratio_max_threshold = 0.8 // if no upper theshold is needed, set ab_ratio_max_threshold = 1
         }
-        
         // Variant QC thresholds  
         variant {
             qual_threshold = 30
