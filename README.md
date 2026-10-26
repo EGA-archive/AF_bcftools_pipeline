@@ -60,13 +60,13 @@ The pipeline performs the following steps:
 
 Technical requirements:
 
-- [Nextflow](https://nextflow.io/docs/latest/install.html) ≥ 24.04
+- [Nextflow](https://nextflow.io/docs/latest/install.html) ≥ 26.10
 
 - [Java](https://www.oracle.com/es/java/technologies/downloads/) ≥ 17
 
-- [bcftools](https://samtools.github.io/bcftools/howtos/install.html) ≥ 1.10
+- [bcftools](https://samtools.github.io/bcftools/howtos/install.html) ≥ 1.24
 
-- [tabix](https://www.htslib.org/doc/tabix.html) (htslib) ≥ 1.13
+- [tabix](https://www.htslib.org/doc/tabix.html) (htslib) ≥ 1.24
 
 - [sceVCF binaries](https://github.com/HTGenomeAnalysisUnit/SCE-VCF/releases/tag/v0.1.3) for contamination checks
 
